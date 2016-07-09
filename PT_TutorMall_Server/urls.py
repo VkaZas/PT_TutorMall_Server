@@ -18,8 +18,10 @@ from django.contrib import admin
 
 from server import views as sv
 
+admin.autodiscover()
+
 urlpatterns = [
     url(r'^admin/', admin.site.urls),
-
-    url(r'^login/', sv.login, name='login')
+    url(r'^login/', sv.userlogin, name='login'),
+    url(r'^check/', sv.check, name='check')
 ]
