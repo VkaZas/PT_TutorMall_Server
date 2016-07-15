@@ -23,5 +23,13 @@ admin.autodiscover()
 urlpatterns = [
     url(r'^admin/', admin.site.urls),
     url(r'^login/', sv.userlogin, name='login'),
-    url(r'^check/', sv.check, name='check')
+    url(r'^logout/', sv.userlogout, name='logout'),
+    url(r'^register/', sv.UserRegister, name='register'),
+    url(r'^create_course/', sv.create_course, name='create_course'),
+    url(r'^course_list/', sv.course_list, name='course_list'),
+    url(r'^sell_course/', sv.sell_course, name='sell_course'),
+    url(r'^buy_course/', sv.buy_course, name='buy_course'),
+    url(r'^order_list/', sv.order_list, name='order_list'),
+    url(r'^create_order/', sv.create_order, name='create_order'),
+    url(r'^modify_user_info/', sv.modify_user_info, name='modify_user_info')
 ]
