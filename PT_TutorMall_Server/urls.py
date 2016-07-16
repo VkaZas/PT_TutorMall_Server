@@ -26,6 +26,7 @@ urlpatterns = [
     url(r'^logout/', sv.userlogout, name='logout'),
     url(r'^register/', sv.UserRegister, name='register'),
     url(r'^create_course/', sv.create_course, name='create_course'),
+    url(r'^delete_course/', sv.delete_course, name='delete_course'),
     url(r'^course_list/', sv.course_list, name='course_list'),
     url(r'^sell_course/', sv.sell_course, name='sell_course'),
     url(r'^buy_course/', sv.buy_course, name='buy_course'),

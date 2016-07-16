@@ -5,16 +5,18 @@ import django.utils.timezone as timezone
 
 # Create your models here.
 
-class UserInfo(models.Model):
+class UserInfo( models.Model):
     #userid = models.AutoField(primary_key=True)
-    username = models.CharField(max_length=20, unique=True)
-    password = models.CharField(max_length=20)
-    email = models.CharField(max_length=50)
-    QQnumber=models.CharField(max_length=20)
+    username = models.CharField('用户名',max_length=20, unique=True)
+    password = models.CharField('密码', max_length=20)
+    email = models.CharField('邮箱', max_length=50)
+    QQnumber=models.CharField('QQ', max_length=20)
     PayUser=models.CharField(max_length=20)
     PayPSW=models.CharField(max_length=20)
-    info=models.CharField(max_length=200, default='勤奋刻苦，品学兼优，力争上游')
+    info=models.CharField('个人简介', max_length=200, default='勤奋刻苦，品学兼优，力争上游')
     time=models.DateTimeField(default=timezone.now)
+  #  class Meta:
+  #  verbose_name = ('用户信息')
 
     def __str__(self):
         return "ID:"+str(self.id)+", Name: "+self.username
@@ -43,15 +45,14 @@ class OrderInfo(models.Model):
     order_state = models.CharField(max_length=50)
     time=models.DateTimeField(default=timezone.now)
 
+
 class AppVeri(models.Model):
     app_key = models.CharField(max_length=50)
 
 
-
 admin.site.register(ConnectUser)
-admin.site.register(UserInfo)
-admin.site.register(CourseInfo)
-admin.site.register(OrderInfo)
+
+
 admin.site.register(AppVeri)
 
 

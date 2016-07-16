@@ -50,6 +50,9 @@ def userlogin(request):
     elif user[0].password != password:
         return JsonResponse({"success": False, "msg": "Password error."})
     else:
+        check = ConnectUser.objects.filter(username=username)
+        if len(check) > 0:
+            return JsonResponse({"success": True, "token": check[0].uuid, 'user_name': username, 'user_email': user[0].email})
         connect = ConnectUser()
         connect.username = username
         connect.uuid = uuid.uuid4()
@@ -60,11 +63,11 @@ def userlogin(request):
 def userlogout(request):
     if request.method=='POST':
         uuid=request.POST.get('uuid','')
-    user=ConnectUser.objects.filter(uuid=uuid)[0]
+    user=ConnectUser.objects.filter(uuid=uuid)
     if len(user)==0:
         return JsonResponse({"success": False, 'msg': "uuid Error. "})
     else:
-        user.delete()
+        user[0].delete()
         return JsonResponse({"success": True})
 
 #修改密码
@@ -122,7 +125,9 @@ def create_course(request):
         course.teacher_id = UserInfo.objects.filter(username=username)[0].id
         course.teacher_name = username
         course.jwb_credit = request.POST.get('jwb_credit', '')
-        course.amount = request.POST.get('amount', '')
+        course.amount = int(request.POST.get('amount', ''))
+        if course.amount < 0:
+            return JsonResponse({'Success': False, 'msg': 'Invalid amount. '})
         #course.time = timezone.now()
         course.save()
 
@@ -146,6 +151,7 @@ def delete_course(request):
         orderlist=OrderInfo.objects.filter(course_id=course_id)
         for i in range(len(orderlist)):
             orderlist[i].order_state = '2' #state=2： 对应课程已删除
+            orderlist[i].save()
 
         course.delete()
         return JsonResponse({'Success': True})
@@ -155,7 +161,10 @@ def sell_course(request):
     if request.method=='POST':
         uuid=request.POST.get('uuid','')
 
-        username=ConnectUser.objects.filter(uuid=uuid)[0].username
+        username = check_connect(uuid)
+        if username == 'invalid':
+            return JsonResponse({'Success': False, 'msg': 'Invalid uuid. '})
+
         userid=UserInfo.objects.filter(username=username)[0].id
         querycourse = CourseInfo.objects.filter(teacher_id=userid)
         courselist=[]
@@ -175,8 +184,11 @@ def sell_course(request):
 def buy_course(request):
     if request.method=='POST':
         uuid=request.POST.get('uuid','')
-        username=ConnectUser.objects.filter(uuid=uuid)[0].username
-        user=UserInfo.objects.filter(username=username)[0]
+        username = check_connect(uuid)
+        if username == 'invalid':
+            return JsonResponse({'Success': False, 'msg': 'Invalid uuid. '})
+
+        user = UserInfo.objects.filter(username=username)[0]
         queryorder = OrderInfo.objects.filter(student_id=user.id)
 
         courselist=[]
