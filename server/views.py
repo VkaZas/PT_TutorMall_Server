@@ -224,7 +224,7 @@ def order_list(request):
     for i in range(len(findorder)):
         courseinfo=CourseInfo.objects.filter(id=findorder[i].course_id)[0]
         teacherinfo=UserInfo.objects.filter(id=findorder[i].teacher_id)[0]
-        studentinfo = UserInfo.objects.filter(id=findorder[i].teacher_id)[0]
+        studentinfo = UserInfo.objects.filter(id=findorder[i].student_id)[0]
         returnlist.append({'order_id':findorder[i].id,
                            'order_info':findorder[i].order_info,
                            'order_state':findorder[i].order_state,
@@ -253,6 +253,7 @@ def modify_user_info(request):
 
         user = UserInfo.objects.filter(username=user_name)[0]
         user.info = user_info
+        user.save()
         return JsonResponse({'Success': True, 'user_info': user_info})
 
 #学生购买课程（创建订单）
