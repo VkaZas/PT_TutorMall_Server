@@ -23,7 +23,7 @@ def UserRegister(request):
 
     filterResult=UserInfo.objects.filter(username=username)
     if len(filterResult)>0:
-        return JsonResponse({"success":False, "msg":"Duplicated username."})
+        return JsonResponse({"success":False, "msg":"用户名已被占用，请重新输入."})
 
     user = UserInfo()
     user.username = username
@@ -46,9 +46,9 @@ def userlogin(request):
 
     user=UserInfo.objects.filter(username=username)
     if len(user)==0: #用户名不存在
-        return JsonResponse({"success": False, "msg": "User does not exist."})
+        return JsonResponse({"success": False, "msg": "用户名不存在，请重新输入. "})
     elif user[0].password != password:
-        return JsonResponse({"success": False, "msg": "Password error."})
+        return JsonResponse({"success": False, "msg": "密码错误，请重新输入. "})
     else:
         check = ConnectUser.objects.filter(username=username)
         if len(check) > 0:
@@ -65,7 +65,7 @@ def userlogout(request):
         uuid=request.POST.get('uuid','')
     user=ConnectUser.objects.filter(uuid=uuid)
     if len(user)==0:
-        return JsonResponse({"success": False, 'msg': "uuid Error. "})
+        return JsonResponse({"success": False, 'msg': "登录信息验证失败. "})
     else:
         user[0].delete()
         return JsonResponse({"success": True})
@@ -76,14 +76,14 @@ def change_pwd(request):
         uuid=request.POST.get('uuid','')
         username=ConnectUser.objects.filter(uuid=uuid)
         if len(username)==0:
-            return JsonResponse({"success":False, "msg":"Invalid uuid."})
+            return JsonResponse({"success":False, "msg":"登录信息验证失败. "})
         pwd=request.POST.get('userpwd','')
         user=UserInfo.objects.filter(username=username[0])
         if len(user)==0:
-            return JsonResponse({"success":False, "msg":"Unknow error."})
+            return JsonResponse({"success":False, "msg":"未知错误."})
         user.password=pwd
         user.save()
-        return JsonResponse({"success":True, "msg":"Success."})
+        return JsonResponse({"success":True})
 
 #搜索站内课程
 def course_list(request):
@@ -117,7 +117,7 @@ def create_course(request):
         uuid=request.POST.get('uuid','')
         username=check_connect(uuid)
         if username=='invalid':
-            return JsonResponse({'Success':False, 'msg': 'Invalid uuid. '})
+            return JsonResponse({'Success':False, 'msg': '登录信息验证失败. '})
 
         course = CourseInfo()
         course.course_name = request.POST.get('course_name','')
@@ -127,7 +127,7 @@ def create_course(request):
         course.jwb_credit = request.POST.get('jwb_credit', '')
         course.amount = int(request.POST.get('amount', ''))
         if course.amount < 0:
-            return JsonResponse({'Success': False, 'msg': 'Invalid amount. '})
+            return JsonResponse({'Success': False, 'msg': '金额不合法，请重新输入. '})
         #course.time = timezone.now()
         course.save()
 
@@ -139,14 +139,18 @@ def delete_course(request):
         uuid = request.POST.get('uuid','')
         username = check_connect(uuid)
         if username == 'invalid':
-            return JsonResponse({'Success': False, 'msg': 'Invalid uuid. '})
+            return JsonResponse({'Success': False, 'msg': '登录信息验证失败. '})
 
         user = UserInfo.objects.filter(username=username)[0]
         course_id = request.POST.get('course_id', '')
+
+        if len(CourseInfo.objects.filter(id=course_id)) == 0:
+            return JsonResponse({'Success': False, 'msg': '该课程不存在. '})
+
         course = CourseInfo.objects.filter(id=course_id)[0]
 
         if course.teacher_id != user.id:#不是开课的教师
-            return JsonResponse({'Success': False, 'msg': 'Permission denied. '})
+            return JsonResponse({'Success': False, 'msg': '您不是该课程的授课教师. '})
 
         orderlist=OrderInfo.objects.filter(course_id=course_id)
         for i in range(len(orderlist)):
@@ -163,7 +167,7 @@ def sell_course(request):
 
         username = check_connect(uuid)
         if username == 'invalid':
-            return JsonResponse({'Success': False, 'msg': 'Invalid uuid. '})
+            return JsonResponse({'Success': False, 'msg': '登录信息验证失败. '})
 
         userid=UserInfo.objects.filter(username=username)[0].id
         querycourse = CourseInfo.objects.filter(teacher_id=userid)
@@ -186,7 +190,7 @@ def buy_course(request):
         uuid=request.POST.get('uuid','')
         username = check_connect(uuid)
         if username == 'invalid':
-            return JsonResponse({'Success': False, 'msg': 'Invalid uuid. '})
+            return JsonResponse({'Success': False, 'msg': '登录信息验证失败. '})
 
         user = UserInfo.objects.filter(username=username)[0]
         queryorder = OrderInfo.objects.filter(student_id=user.id)
@@ -196,7 +200,7 @@ def buy_course(request):
             a_course = CourseInfo.objects.filter(id=queryorder[i].course_id)
 
             if len(a_course)==0: #对应的课程已被删除
-                courseinfo = 'Course has been deleted. '
+                courseinfo = '该课程已被删除. '
             else:
                 courseinfo = a_course[0].course_info
             courselist.append({'order_id': queryorder[i].id,
@@ -249,7 +253,7 @@ def modify_user_info(request):
 
         user_name = check_connect(uuid)
         if user_name == 'invalid':
-            return JsonResponse({'Success': False, 'msg': 'Invalid uuid. '})
+            return JsonResponse({'Success': False, 'msg': '登录信息验证失败. '})
 
         user = UserInfo.objects.filter(username=user_name)[0]
         user.info = user_info
@@ -265,7 +269,7 @@ def create_order(request):
 
         user_name = check_connect(uuid)
         if user_name == 'invalid':
-            return JsonResponse({'Success': False, 'msg': 'Invalid uuid. '})
+            return JsonResponse({'Success': False, 'msg': '登录信息验证失败. '})
 
         course = CourseInfo.objects.filter(id=course_id)[0]
         student = UserInfo.objects.filter(username=user_name)[0]
@@ -291,7 +295,7 @@ def show_userinfo(request):
         username = request.POST.get('username', '')
 
         if check_connect(uuid) == 'invalid':
-            return JsonResponse({'Success': False, 'msg': 'Invalid uuid. '})
+            return JsonResponse({'Success': False, 'msg': '登录信息验证失败. '})
 
         user=UserInfo.objects.filter(username=username)[0]
 
@@ -317,12 +321,12 @@ def order_paid(request):
         check_app = AppVeri.objects.filter(id=appid, app_key=appkey)
 
         if len(check_app) == 0:
-            return JsonResponse({'Success': False, 'msg': 'Authentication failed.'})
+            return JsonResponse({'Success': False, 'msg': 'App身份验证失败. '})
 
         order = OrderInfo.objects.filter(id=orderid)
 
         if len(order) == 0:
-            return JsonResponse({'Success': False, 'msg': 'Can not find this order.'})
+            return JsonResponse({'Success': False, 'msg': '找不到指定的订单.'})
 
         order[0].order_state = 1
         return JsonResponse({'Success': True})
